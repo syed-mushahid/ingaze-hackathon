@@ -1,0 +1,748 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Ingaze Engine Data Flow</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a single vertical pipeline. A numbered rail on the left carries the flow; each stage is a card with Receives / Does / Sends columns, and a hand-off chip on the rail names what moves to the next stage. */
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --ink: #17202a;
+  --muted: #5a6675;
+  --line: #d6dde5;
+  --rail: #b8c3cf;
+  --llm: #2f5bd3;
+  --llm-soft: #e7edfc;
+  --code: #24303d;
+  --code-soft: #e8ecf0;
+  --pre-bg: #f0f3f6;
+  --hl: #0f6b5c;
+  --red: #b42318;   --red-soft: #fde8e6;
+  --amber: #9a5b00; --amber-soft: #fdf1dc;
+  --green: #17734a; --green-soft: #e3f4ea;
+  --blue-soft: #e7edfc;
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1419; --surface: #161d25; --ink: #e6ebf0; --muted: #9aa7b5; --line: #2a3542; --rail: #3a4756;
+    --llm: #7d9bff; --llm-soft: #1b2645; --code: #c9d3dd; --code-soft: #222c37; --pre-bg: #111820; --hl: #4fd1b5;
+    --red: #ff8a7d; --red-soft: #3a1a17; --amber: #f3b65a; --amber-soft: #352610; --green: #5fd39a; --green-soft: #12301f; --blue-soft: #1b2645;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1419; --surface: #161d25; --ink: #e6ebf0; --muted: #9aa7b5; --line: #2a3542; --rail: #3a4756;
+  --llm: #7d9bff; --llm-soft: #1b2645; --code: #c9d3dd; --code-soft: #222c37; --pre-bg: #111820; --hl: #4fd1b5;
+  --red: #ff8a7d; --red-soft: #3a1a17; --amber: #f3b65a; --amber-soft: #352610; --green: #5fd39a; --green-soft: #12301f; --blue-soft: #1b2645;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-sans); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 28px; }
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(1.6rem, 3.2vw, 2.2rem); font-weight: 700; letter-spacing: -0.01em; }
+.lede { color: var(--muted); max-width: 68ch; margin: 8px 0 0; }
+header { display: grid; gap: 16px; }
+.meta { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; font-size: 13.5px; color: var(--muted); }
+.meta b { color: var(--ink); font-weight: 600; }
+.badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.badge.llm { background: var(--llm-soft); color: var(--llm); }
+.badge.code { background: var(--code-soft); color: var(--code); }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dot.llm { background: var(--llm); } .dot.code { background: var(--code); }
+
+/* mini map */
+nav.map { overflow-x: auto; padding-bottom: 4px; }
+nav.map ol { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; min-width: max-content; }
+nav.map a { display: flex; align-items: center; gap: 6px; text-decoration: none; color: var(--ink); font-size: 12.5px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); white-space: nowrap; }
+nav.map a:hover, nav.map a:focus-visible { border-color: var(--llm); outline: none; }
+nav.map .n { font-family: var(--font-mono); color: var(--muted); font-size: 11.5px; }
+
+/* pipeline */
+.flow { display: grid; gap: 0; }
+.stage { display: grid; grid-template-columns: 44px minmax(0, 1fr); column-gap: 14px; }
+.rail { position: relative; display: flex; justify-content: center; }
+.rail::before { content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; transform: translateX(-50%); background: var(--rail); }
+.stage:first-child .rail::before { top: 22px; }
+.stage:last-child .rail::before { bottom: auto; height: 22px; }
+.num { position: relative; z-index: 1; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-family: var(--font-mono); font-weight: 500; font-size: 14px; background: var(--surface); border: 2px solid var(--code); color: var(--code); margin-top: 2px; }
+.stage.is-llm .num { border-color: var(--llm); color: var(--llm); background: var(--llm-soft); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px 20px; display: grid; gap: 14px; min-width: 0; }
+.stage.is-llm .card { border-color: color-mix(in srgb, var(--llm) 45%, var(--line)); }
+.card-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px; }
+.card-head h2 { font-size: 1.15rem; font-weight: 600; }
+.file { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; min-width: 0; }
+code { overflow-wrap: anywhere; }
+.meta b { overflow-wrap: anywhere; }
+body { overflow-x: clip; }
+.summary { margin: 0; color: var(--muted); max-width: 80ch; }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1fr); gap: 14px; }
+.col { min-width: 0; display: grid; align-content: start; gap: 8px; }
+.col h3 { font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.col.does { border-left: 1px solid var(--line); border-right: 1px solid var(--line); padding: 0 14px; }
+.col ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; }
+.col p { margin: 0; font-size: 14px; }
+pre { margin: 0; background: var(--pre-bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-family: var(--font-mono); font-size: 12.3px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; overflow-x: auto; color: var(--ink); }
+pre .k { color: var(--muted); }
+pre .v { color: var(--hl); font-weight: 500; }
+pre .c { color: var(--muted); font-style: italic; }
+.note { font-size: 13px; color: var(--muted); margin: 0; }
+.note b { color: var(--ink); font-weight: 600; }
+.chip { display: inline-block; font-family: var(--font-mono); font-size: 11.5px; font-weight: 500; padding: 1px 7px; border-radius: 6px; white-space: nowrap; }
+.chip.red { background: var(--red-soft); color: var(--red); }
+.chip.amber { background: var(--amber-soft); color: var(--amber); }
+.chip.green { background: var(--green-soft); color: var(--green); }
+.chip.blue { background: var(--blue-soft); color: var(--llm); }
+.chip.grey { background: var(--code-soft); color: var(--code); }
+.handoff { position: relative; display: block; padding: 10px 0 12px 58px; font-size: 13px; color: var(--muted); }
+.handoff::before { content: ""; position: absolute; top: 0; bottom: 0; left: 22px; width: 2px; transform: translateX(-50%); background: var(--rail); }
+.handoff .arrow { font-family: var(--font-mono); color: var(--rail); margin-right: 6px; }
+.handoff b { color: var(--ink); font-weight: 600; }
+.side { border-top: 1px dashed var(--line); padding-top: 12px; display: grid; gap: 8px; }
+.side h4 { margin: 0; font-size: 12.5px; font-weight: 600; color: var(--ink); }
+table.mini { border-collapse: collapse; width: 100%; font-size: 13px; }
+table.mini th, table.mini td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.mini th { font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+table.mini td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tablewrap { overflow-x: auto; }
+.why { border-left: 3px solid var(--hl); background: var(--pre-bg); border-radius: 0 8px 8px 0; padding: 10px 14px; display: grid; gap: 6px; }
+.why h3 { font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--hl); margin: 0; }
+.why ul { margin: 0; padding-left: 18px; display: grid; gap: 3px; font-size: 14px; }
+.why b { font-weight: 600; }
+footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
+@media (max-width: 900px) {
+  .wrap { gap: 22px; }
+  .cols { grid-template-columns: minmax(0, 1fr); }
+  .col.does { border: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 12px 0; }
+}
+@media (max-width: 520px) {
+  body { font-size: 14.5px; padding-block: 20px 48px; }
+  .wrap { gap: 18px; }
+  .lede { font-size: 14.5px; }
+  .meta { gap: 8px 14px; font-size: 13px; }
+  nav.map { margin-inline: -16px; padding-inline: 16px; scroll-snap-type: x proximity; }
+  nav.map li { scroll-snap-align: start; }
+  nav.map a { padding: 9px 12px; }
+  .stage { grid-template-columns: 30px minmax(0, 1fr); column-gap: 10px; }
+  .num { width: 28px; height: 28px; font-size: 12px; }
+  .stage:first-child .rail::before { top: 16px; }
+  .stage:last-child .rail::before { height: 16px; }
+  .handoff { padding-left: 40px; }
+  .handoff::before { left: 15px; }
+  .card { padding: 14px; gap: 12px; border-radius: 10px; }
+  .card-head { gap: 6px 10px; }
+  .card-head h2 { font-size: 1.05rem; flex-basis: 100%; }
+  .summary, .col ul, .col p, .why ul { font-size: 13.5px; }
+  .col ul, .why ul { padding-left: 16px; }
+  .why { padding: 10px 12px; }
+  pre { font-size: 11.6px; padding: 8px 10px; }
+  table.mini th, table.mini td { padding: 4px 6px; }
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Ingaze engine: data flow, stage by stage</h1>
+      <p class="lede">What each stage receives, what it does with it, what it passes on, and why the stage exists. Examples come from a real run on <b>EuroFreight Interport</b> (freight logistics, 1,600 staff, 5 hubs). Where EuroFreight has no example of a step, the CloudNova (fintech) run is used and marked.</p>
+    </div>
+    <div class="meta">
+      <span><span class="badge llm"><span class="dot llm"></span>LLM</span> reads text or writes words</span>
+      <span><span class="badge code"><span class="dot code"></span>Code</span> deterministic, makes the decisions</span>
+      <span>Source: <b>trace/SCENARIO_B_EUROFREIGHT_LOGISTICS.json</b></span>
+    </div>
+    <nav class="map" aria-label="Stages">
+      <ol>
+        <li><a href="#s0"><span class="n">00</span>Client file</a></li>
+        <li><a href="#s1"><span class="n">01</span>Input repair</a></li>
+        <li><a href="#s2"><span class="n">02</span>Read facts</a></li>
+        <li><a href="#s3"><span class="n">03</span>Double-check</a></li>
+        <li><a href="#s4"><span class="n">04</span>Signals</a></li>
+        <li><a href="#s5"><span class="n">05</span>Diagnose</a></li>
+        <li><a href="#s6"><span class="n">06</span>Gate</a></li>
+        <li><a href="#s7"><span class="n">07</span>Verdicts</a></li>
+        <li><a href="#s8"><span class="n">08</span>Skeleton</a></li>
+        <li><a href="#s9"><span class="n">09</span>Rank cases</a></li>
+        <li><a href="#s10"><span class="n">10</span>Write plan</a></li>
+        <li><a href="#s11"><span class="n">11</span>Verify</a></li>
+        <li><a href="#s12"><span class="n">12</span>Output</a></li>
+      </ol>
+    </nav>
+  </header>
+
+  <main class="flow">
+
+    <!-- 0 -->
+    <section class="stage" id="s0">
+      <div class="rail"><span class="num">00</span></div>
+      <div class="card">
+        <div class="card-head"><h2>Client file</h2><span class="file">inputs/SCENARIO_B_EUROFREIGHT_LOGISTICS.json</span></div>
+        <p class="summary">The raw intake: a profile, free-text platform signals, free-text internal context, and optional telemetry with sector peer benchmarks.</p>
+        <div class="why"><h3>Why this shape</h3><ul>
+          <li><b>Text and numbers stay apart:</b> free text goes to the LLM, which handles wording; metrics go to code, which handles arithmetic.</li>
+          <li><b>Requests are just input:</b> leadership asks sit in their own field and are judged later (step 07), never followed blindly.</li>
+        </ul></div>
+        <div class="cols">
+          <div class="col"><h3>Text sections</h3>
+<pre><span class="k">profile.workforce_target:</span>
+"Licensed Commercial Truck Drivers (C-CQC)
+ and Warehouse Operators (120 urgent openings)"
+
+<span class="k">ingaze_platform_signals.recruiting_and_jds:</span>
+"…82% from smartphones, but 63% of visitors
+ drop off before completing the application
+ form because it requires desktop-style
+ account registration and a 5-page CV upload."</pre></div>
+          <div class="col does"><h3>Leadership requests</h3>
+<pre><span class="k">client_internal_context.
+leadership_perceptions_and_requests:</span>
+"The Marketing Director proposes launching
+ a B2B technical LinkedIn blog series to
+ attract drivers, while Regional Hub
+ Directors demand deploying a new mobile
+ fast-apply widget … tomorrow morning
+ before running any portal UX or driver
+ persona audits."</pre></div>
+          <div class="col"><h3>Metrics</h3>
+<pre><span class="k">t0_current_snapshot:</span>
+  application_form_dropoff_pct: <span class="v">63.0</span>
+  smartphone_traffic_pct:       <span class="v">82.0</span>
+  sub_ratings_5.compensation:   <span class="v">4.7</span>
+  external_claims_gap_stars_5:  <span class="v">0.31</span>
+<span class="k">sector_peer_benchmarks:</span>
+  application_form_dropoff_pct: <span class="v">41.2</span>
+  sub_ratings_5.compensation:   <span class="v">3.31</span></pre></div>
+        </div>
+      </div>
+    </section>
+    <div class="handoff"><span class="arrow">↓</span> passes <b>raw JSON</b> (any shape)</div>
+
+    <!-- 1 -->
+    <section class="stage" id="s1">
+      <div class="rail"><span class="num">01</span></div>
+      <div class="card">
+        <div class="card-head"><h2>Input repair</h2><span class="badge code">Code</span><span class="file">input_check.py · sanitize_client()</span></div>
+        <p class="summary">Turns any client file into the one shape the engine expects, and logs every change as a warning. It never stops the run.</p>
+        <div class="why"><h3>Why this stage</h3><ul>
+          <li><b>Real intakes are messy:</b> a misnamed section or "18%" as text should not crash a client's run.</li>
+          <li><b>Nothing changes silently:</b> every fix is a warning in the trace and in the GUI.</li>
+          <li><b>One contract:</b> the CLI and the GUI upload accept exactly the same files.</li>
+          <li><b>Graceful fallback:</b> with no usable metrics the engine still plans from text instead of failing.</li>
+        </ul></div>
+        <div class="cols">
+          <div class="col"><h3>Receives</h3><p>The raw file in any of three wrappers: engine format, flat dataset scenario, or <code>blind_judge_scenario</code>.</p>
+<pre><span class="c">// a messy example (not EuroFreight)</span>
+"internal_contex": "…"
+"metrics": { "t0": { "…_dropoff_pct": "18%" } }</pre></div>
+          <div class="col does"><h3>Does</h3><ul>
+            <li>Unwraps the blind-judge wrapper</li>
+            <li>Drops the challenge's own summary and key questions</li>
+            <li>Maps misnamed sections by spelling (0.75 cutoff) or a hint word</li>
+            <li>Flattens wrong types to text</li>
+            <li>Converts "18%", "3,4", "1.234,5" to numbers</li>
+            <li>No usable T0 metrics: the run becomes text-only</li>
+          </ul></div>
+          <div class="col"><h3>Sends</h3>
+<pre><span class="k">client</span> = {profile, ingaze_platform_signals,
+          client_internal_context, metrics?}
+<span class="k">warnings</span> = [
+ "section 'internal_contex' read as
+  'client_internal_context'",
+ "metric '…_dropoff_pct' = '18%' given as
+  text: read as 18" ]</pre>
+            <p class="note"><b>EuroFreight:</b> already clean, 0 warnings.</p></div>
+        </div>
+      </div>
+    </section>
+    <div class="handoff"><span class="arrow">↓</span> passes <b>clean client</b>; text goes to step 02, metrics to step 04</div>
+
+    <!-- 2 -->
+    <section class="stage is-llm" id="s2">
+      <div class="rail"><span class="num">02</span></div>
+      <div class="card">
+        <div class="card-head"><h2>Read facts</h2><span class="badge llm">LLM × 3</span><span class="file">extract.py · settings in knowledge/reading.yaml</span></div>
+        <p class="summary">The only step that reads client text. Three runs in parallel, then code keeps what at least 2 runs agree on, checks every quote is verbatim, and applies the context filter.</p>
+        <div class="why"><h3>Why this stage</h3><ul>
+          <li><b>Paraphrase needs a reader:</b> "6-month churn" and "first-year turnover" mean the same thing; a keyword list misses this (we tested 11 tricky sentences).</li>
+          <li><b>Typed facts let code decide:</b> after this step, code reasons over fact kinds, not raw text.</li>
+          <li><b>No invented evidence:</b> a fact whose quote isn't in the input is dropped.</li>
+          <li><b>Stable reading:</b> the 2-of-3 vote stops one odd run adding or removing a root cause.</li>
+          <li><b>No off-topic evidence:</b> "customer churn fell to 3%" is not read as staff churn.</li>
+        </ul></div>
+        <div class="cols">
+          <div class="col"><h3>Receives</h3><p>Every text field, labelled with its path:</p>
+<pre><span class="k">[ingaze_platform_signals.recruiting_and_jds]</span>
+"…63% of visitors drop off before completing
+ the application form because it requires
+ desktop-style account registration and a
+ 5-page CV upload."</pre></div>
+          <div class="col does"><h3>Does</h3><ul>
+            <li>Splits text into atomic facts of fixed kinds</li>
+            <li>Gives each fact a status, a subject (who) and a time (when)</li>
+            <li>Drops any fact whose quote isn't in the input</li>
+            <li>2-of-3 vote on kind + subject + polarity</li>
+            <li>Only current facts about employees, candidates or managers can be used as evidence</li>
+            <li>Also reads workforce cohorts, euro costs and request details</li>
+          </ul></div>
+          <div class="col"><h3>Sends</h3>
+<pre><span class="v">F8</span>  recruiting_symptom · candidates · current
+    "63% of visitors drop off before…"
+<span class="v">F9</span>  application_friction · active   <span class="c">vote 3/3</span>
+    "…requires desktop-style account
+     registration"
+<span class="v">W1</span>  drivers · deskless_frontline · mobile_route
+<span class="v">W2</span>  warehouse ops · frontline_shift  <span class="c">vote 2/3</span>
+<span class="v">E1</span>  €190,000 per quarter on agencies
+<span class="v">F25</span> leadership_request · Regional Hub Directors
+    lever: mobile_fast_apply · urgency: immediate
+    skipped: "portal UX or persona audits"</pre></div>
+        </div>
+      </div>
+    </section>
+    <div class="handoff"><span class="arrow">↓</span> passes <b>26 facts</b> (F1–F26), workforce cohorts, 1 cost item, noticed sentences</div>
+
+    <!-- 3 -->
+    <section class="stage is-llm" id="s3">
+      <div class="rail"><span class="num">03</span></div>
+      <div class="card">
+        <div class="card-head"><h2>Double-check and coverage</h2><span class="badge llm">LLM</span><span class="badge code">Code</span><span class="file">extract.py · double_check, coverage()</span></div>
+        <p class="summary">Facts that could block advocacy get a second, narrow LLM reading. Code then compares the two readings and checks that every noticed sentence became a fact.</p>
+        <div class="why"><h3>Why this stage</h3><ul>
+          <li><b>These facts are costly to get wrong:</b> they decide whether advocacy is allowed.</li>
+          <li><b>It fixed a real error:</b> our first version misread "the gap … is minimal (0.2 stars)" and blocked advocacy for three healthy test clients.</li>
+          <li><b>Fails safe:</b> a disputed problem becomes a Phase 1 check, never silently assumed away.</li>
+          <li><b>Nothing dropped:</b> the coverage check turns any unclassified sentence into an open question.</li>
+        </ul></div>
+        <div class="cols">
+          <div class="col"><h3>Receives</h3><p>Each blocker fact (Say-Do Gap, burnout, management, shift burnout, early attrition) plus its sentence and 1 neighbour each side.</p>
+<pre><span class="c">// CloudNova (EuroFreight has no blocker facts)</span>
+<span class="v">F6</span> say_do_gap
+"a 1.3-star gap between external recruiting
+ claims ('cloud autonomy') and recent
+ engineering reviews citing 'rigid project
+ micromanagement…'"</pre></div>
+          <div class="col does"><h3>Does</h3><ul>
+            <li>Asks: present, absent or unclear? About whom? Current?</li>
+            <li>The deciding phrase must be verbatim</li>
+            <li>Readings disagree on a present problem: <span class="chip amber">conflict</span>, so it is verified, never assumed away</li>
+            <li>Absent vs unclear: <span class="chip grey">unconfirmed</span></li>
+            <li>Noticed sentence linked to no fact: raised as a question</li>
+          </ul></div>
+          <div class="col"><h3>Sends</h3>
+<pre><span class="k">F6 double_check:</span>
+  first_reading:  present · employees · current
+  second_reading: present · employees · current
+  outcome: <span class="v">agree</span> → F6 stays active</pre>
+            <p class="note"><b>EuroFreight:</b> 0 blocker facts to re-read, 0 unclassified sentences.</p></div>
+        </div>
+      </div>
+    </section>
+    <div class="handoff"><span class="arrow">↓</span> passes <b>confirmed facts</b>; merged with signals into one set of tags</div>
+
+    <!-- 4 -->
+    <section class="stage" id="s4">
+      <div class="rail"><span class="num">04</span></div>
+      <div class="card">
+        <div class="card-head"><h2>Signals</h2><span class="badge code">Code</span><span class="file">signals.py · knowledge/metrics.yaml</span></div>
+        <p class="summary">Runs alongside step 02. Compares each client metric with its sector peers, checks fixed thresholds from the dictionary and research, and turns each result into tags.</p>
+        <div class="why"><h3>Why this stage</h3><ul>
+          <li><b>Numbers need context:</b> 63% drop-off is a problem because peers are at 41.2%.</li>
+          <li><b>Every threshold has a source:</b> the telemetry dictionary or a research snippet, so we can cite it.</li>
+          <li><b>Healthy signals matter too:</b> they protect what works and rule out suspected causes, such as pay.</li>
+          <li><b>One vocabulary:</b> tags are shared by causes, interventions and cases, so text and telemetry combine.</li>
+        </ul></div>
+        <div class="cols">
+          <div class="col"><h3>Receives</h3>
+<pre><span class="k">client</span>  application_form_dropoff_pct  63.0
+<span class="k">peers</span>   application_form_dropoff_pct  41.2
+<span class="k">client</span>  compensation                   4.7
+<span class="k">peers</span>   compensation                   3.31
+<span class="k">client</span>  site ratings  Verona 4.31 … Naples 3.08</pre></div>
+          <div class="col does"><h3>Does</h3><ul>
+            <li>Knows if higher or lower is better for each metric</li>
+            <li>Stars: 0.25 off = moderate, 0.5 = severe</li>
+            <li>Percentages: 15% worse = moderate, 30% = severe</li>
+            <li>Fixed lines, e.g. drop-off above 58% (R2)</li>
+            <li>Finds healthy and struggling sites</li>
+          </ul></div>
+          <div class="col"><h3>Sends</h3>
+<pre><span class="v">S7</span>  drop-off 63 vs peers 41.2 (+53%, worse)
+    <span class="c">severe</span> → tag application_friction
+<span class="v">S19</span> drop-off above the 58% level in R2
+    <span class="c">severe</span> → tag application_friction
+<span class="v">S5</span>  compensation 4.7 vs 3.31 (better)
+    <span class="c">healthy</span> → tag compensation_healthy
+<span class="v">S25</span> Verona hub 4.31 vs mean 3.83
+    <span class="c">healthy</span> → tag healthy_site</pre></div>
+        </div>
+        <div class="side">
+          <h4>Merged state (knowledge.build_state)</h4>
+          <p class="note">Facts and signals become one set of <b>31 tags</b>, each with the evidence ids behind it, e.g. <code>application_friction: [F9, F10, S7, S12, S19]</code>. Implied kinds are added here too (shift_burnout also counts as burnout).</p>
+        </div>
+      </div>
+    </section>
+    <div class="handoff"><span class="arrow">↓</span> passes <b>tags + evidence ids</b> (F# and S#)</div>
+
+    <!-- 5 -->
+    <section class="stage" id="s5">
+      <div class="rail"><span class="num">05</span></div>
+      <div class="card">
+        <div class="card-head"><h2>Diagnose root causes</h2><span class="badge code">Code</span><span class="file">diagnose.py · knowledge/causes.yaml</span></div>
+        <p class="summary">Scores each of the 13 catalog causes from its evidence and gives it one status. Only direct evidence can create a cause; symptoms can only support one.</p>
+        <div class="why"><h3>Why this stage</h3><ul>
+          <li><b>Causes, not symptoms:</b> a 43-day time-to-hire is the symptom; the desktop-only form is the cause, and that is what gets fixed.</li>
+          <li><b>Consistent and auditable:</b> a fixed catalog of 13 causes with scores means the same evidence always gives the same diagnosis.</li>
+          <li><b>Honest certainty:</b> contributing and conflict causes become checks, not spending.</li>
+          <li><b>Restraint with proof:</b> "pay is fine, 4.7 vs 3.31" saves budget and answers the CFO's first question (FN5).</li>
+        </ul></div>
+        <div class="cols">
+          <div class="col"><h3>Receives</h3>
+<pre><span class="k">Application form friction</span>
+  direct:  F9, F10, S12
+  support: S7, S19, F8, F20, S8
+<span class="k">Pay below market</span>
+  direct:  none
+  healthy: S5 (4.7 vs peers 3.31)
+<span class="k">Slow candidate follow-up</span>
+  direct:  F5  "slow candidate response"
+  negated: F26 "HQ roles hire smoothly"</pre></div>
+          <div class="col does"><h3>Does</h3><ul>
+            <li>Direct = 1.0, support = 0.5 each (max 1.0)</li>
+            <li>A quote-verified text cause is diagnosed unless contradicted</li>
+            <li>A telemetry-only cause needs a score of 1.5</li>
+            <li>Keeps the top 5; the rest become secondary</li>
+            <li>Suspected causes with healthy data are ruled out</li>
+            <li>Checks a stated euro total against its named drivers</li>
+          </ul></div>
+          <div class="col"><h3>Sends</h3>
+<pre>Application form friction  <span class="v">diagnosed</span>  4.0
+Generic job ads            <span class="v">diagnosed</span>  4.0
+Manual tracking, no EMV    <span class="v">diagnosed</span>  4.0
+Channel mismatch           <span class="v">diagnosed</span>  2.0
+Unmanaged local reputation <span class="v">diagnosed</span>  2.0
+No candidate feedback loop secondary  1.5
+Slow candidate follow-up   conflict   2.0
+Pay below market           ruled out
+Uncoached management       ruled out</pre>
+            <p class="note">Ruled-out line in the output: "Pay below market: compensation 4.7 vs peers 3.31 → no remediation spend".</p></div>
+        </div>
+      </div>
+    </section>
+    <div class="handoff"><span class="arrow">↓</span> passes <b>cause statuses</b> to the gate, verdicts, skeleton and ranker</div>
+
+    <!-- 6 -->
+    <section class="stage" id="s6">
+      <div class="rail"><span class="num">06</span></div>
+      <div class="card">
+        <div class="card-head"><h2>Advocacy gate</h2><span class="badge code">Code</span><span class="file">gate.py · knowledge/gate.yaml</span></div>
+        <p class="summary">Decides if employee advocacy may start (FN4, R5). Only a diagnosed or conflict blocker, or a telemetry blocker, closes the gate.</p>
+        <div class="why"><h3>Why this stage</h3><ul>
+          <li><b>Advocacy amplifies the culture that exists:</b> asking staff to promote the company during burnout or a Say-Do Gap causes backlash (FN4, R5).</li>
+          <li><b>One explicit state:</b> the LLM can't promise an ambassador campaign while a blocker is active.</li>
+          <li><b>"Not yet" becomes a target:</b> release criteria tell the client exactly what must improve.</li>
+          <li><b>Weak evidence doesn't stall the plan:</b> a contributing blocker adds a check but never blocks alone.</li>
+        </ul></div>
+        <div class="cols">
+          <div class="col"><h3>Receives</h3>
+<pre><span class="k">blocker causes:</span>  none diagnosed
+<span class="k">claims gap:</span>      0.31★ (limit 1.0★)
+<span class="k">attrition:</span>       14.6% vs sector 18.8%
+<span class="k">healthy tags:</span>    culture_healthy,
+                 retention</pre></div>
+          <div class="col does"><h3>Does</h3><ul>
+            <li>Any active blocker: <span class="chip red">BLOCKED</span></li>
+            <li>All 3 ready groups hold: <span class="chip green">READY</span></li>
+            <li>Otherwise: <span class="chip grey">NEUTRAL</span></li>
+            <li>Writes release criteria from the client's own numbers</li>
+          </ul></div>
+          <div class="col"><h3>Sends</h3>
+<pre><span class="k">state:</span> <span class="v">NEUTRAL</span>
+<span class="k">reason:</span> no blocker, but not ready
+<span class="k">ready conditions:</span>
+  employees already speak up   ✗
+  the EVP is authentic          ✗
+  the climate is healthy        ✓</pre></div>
+        </div>
+        <div class="side">
+          <h4>CloudNova, for contrast</h4>
+          <p class="note"><span class="chip red">BLOCKED</span> by a diagnosed Say-Do Gap, management friction and early attrition. Release criterion: "claims gap at or below 1.0★ (now 1.3★, sector peers 0.44★)".</p>
+        </div>
+      </div>
+    </section>
+    <div class="handoff"><span class="arrow">↓</span> passes <b>gate state</b> + release criteria</div>
+
+    <!-- 7 -->
+    <section class="stage" id="s7">
+      <div class="rail"><span class="num">07</span></div>
+      <div class="card">
+        <div class="card-head"><h2>Request verdicts</h2><span class="badge code">Code</span><span class="file">verdicts.py · knowledge/verdicts.yaml</span></div>
+        <p class="summary">Each leadership request gets exactly one verdict. The strongest wins: BLOCKED, DEFERRED, RESEQUENCED, RESCOPED, NOT_SUPPORTED, ACCEPTED.</p>
+        <div class="why"><h3>Why this stage</h3><ul>
+          <li><b>Requests are the planted traps:</b> the engine must neither obey them blindly nor ignore them.</li>
+          <li><b>More useful than yes or no:</b> "not yet", "after the audit" and "start with a pilot" give leadership something to act on.</li>
+          <li><b>A reason every time:</b> each verdict comes with the rule and field note behind it.</li>
+          <li><b>The decision sticks:</b> banned levers are removed from the plan and rejected by the verifier if they come back.</li>
+          <li><b>Result:</b> 6/6 official request verdicts correct.</li>
+        </ul></div>
+        <div class="cols">
+          <div class="col"><h3>Receives</h3>
+<pre><span class="v">F24</span> Marketing Director
+    "technical LinkedIn blog series
+     to attract drivers"
+    lever: technical_storytelling
+<span class="v">F25</span> Regional Hub Directors
+    "fast-apply widget … tomorrow morning"
+    lever: mobile_fast_apply
+    skipped: portal UX / persona audits</pre></div>
+          <div class="col does"><h3>Does</h3><ul>
+            <li>Lever doesn't fit the workforce: BLOCKED</li>
+            <li>Would change a healthy asset or uses noise: BLOCKED</li>
+            <li>Advocacy while the gate is BLOCKED: DEFERRED</li>
+            <li>Urgent or skips a prerequisite: RESEQUENCED</li>
+            <li>Company-wide with site differences: RESCOPED</li>
+          </ul></div>
+          <div class="col"><h3>Sends</h3>
+<pre><span class="v">F24</span> <span class="chip red">BLOCKED</span>
+    "Technical storytelling does not fit
+     the deskless_frontline workforce
+     (FN2/FN6)"
+    banned: technical_storytelling
+<span class="v">F25</span> <span class="chip amber">RESEQUENCED</span>
+    "Fast-apply comes after the Career
+     Portal UX Audit instead of
+     'tomorrow morning' (FN5)"</pre></div>
+        </div>
+      </div>
+    </section>
+    <div class="handoff"><span class="arrow">↓</span> passes <b>verdicts + banned levers</b></div>
+
+    <!-- 8 -->
+    <section class="stage" id="s8">
+      <div class="rail"><span class="num">08</span></div>
+      <div class="card">
+        <div class="card-head"><h2>Plan skeleton</h2><span class="badge code">Code</span><span class="file">skeleton.py · knowledge/interventions.yaml, fit.yaml</span></div>
+        <p class="summary">Picks the actions and their phases. Every diagnosed cause gets a fix, prerequisites come first, misfits and banned levers are left out, max 5 per phase.</p>
+        <div class="why"><h3>Why this stage</h3><ul>
+          <li><b>Stable structure:</b> the same input gives the same actions in the same phases on every run.</li>
+          <li><b>Safe order:</b> diagnose before you redesign (FN5); fast-apply waits for the portal audit.</li>
+          <li><b>Nothing left unfixed:</b> every diagnosed cause gets a real fix by Phase 2.</li>
+          <li><b>Realistic size:</b> max 5 actions per phase suits a small HR team (the first version had 8 phases over 5).</li>
+        </ul></div>
+        <div class="cols">
+          <div class="col"><h3>Receives</h3><ul>
+            <li>Cause statuses (step 05)</li>
+            <li>Gate state (step 06)</li>
+            <li>Verdicts and banned levers (step 07)</li>
+            <li>Each of the 24 interventions' status: relevant, not indicated, wrong workforce or blocked</li>
+            <li>Work settings: mobile_route, frontline_shift</li>
+          </ul></div>
+          <div class="col does"><h3>Does</h3><ul>
+            <li>Selects actions that fix or verify a cause</li>
+            <li>Places each in the earliest phase after its prerequisites</li>
+            <li>Merges related diagnostics into one slot</li>
+            <li>Drops misfits with a logged reason</li>
+            <li>Advocacy waits for the gate</li>
+          </ul></div>
+          <div class="col"><h3>Sends · 11 slots</h3>
+<pre><span class="k">Phase 1</span>
+ A1 Reputation audit + Review responses
+ A2 Candidate feedback surveys  <span class="c">verifies conflict</span>
+ A3 CFO dashboard
+ A4 Persona calibration
+ A5 Portal UX audit
+<span class="k">Phase 2</span>
+ A6 Mobile fast-apply pilot  <span class="c">← F25, after A5</span>
+ A7 Persona-aligned ads + job previews
+ A8 Ambassador selection
+ A9 Candidate response SLA
+ A10 EVP realignment
+<span class="k">Phase 3</span>
+ A11 Ambassador tracking
+<span class="k">Not in plan</span>
+ EMV reporting  <span class="c">prerequisite can't come earlier</span></pre></div>
+        </div>
+      </div>
+    </section>
+    <div class="handoff"><span class="arrow">↓</span> passes <b>fixed slots</b> to the planner; the LLM can't add or move them</div>
+
+    <!-- 9 -->
+    <section class="stage" id="s9">
+      <div class="rail"><span class="num">09</span></div>
+      <div class="card">
+        <div class="card-head"><h2>Rank past cases</h2><span class="badge code">Code</span><span class="file">rank_cases.py · knowledge/ranker.yaml</span></div>
+        <p class="summary">Scores all 21 library cases against the client and keeps the top 3, with real ROI and before/after numbers added by code.</p>
+        <div class="why"><h3>Why this stage</h3><ul>
+          <li><b>Credibility:</b> "a similar company did this and got these numbers" persuades a CFO more than theory.</li>
+          <li><b>Match on the problem, not the industry:</b> root cause carries 55% of the score.</li>
+          <li><b>No wrong-sector playbooks:</b> the fit penalty fixed a logistics test client getting retail cases.</li>
+          <li><b>No invented ROI:</b> code copies the numbers from the case library.</li>
+          <li><b>No overfitting:</b> weights were chosen by leave-one-out on the 21 cases, never on the 3 scenarios.</li>
+        </ul></div>
+        <div class="cols">
+          <div class="col"><h3>Receives</h3>
+<pre><span class="k">client tags:</span> application_friction,
+  generic_job_ads, multi_site_variance,
+  slow_time_to_hire, agency_dependency, …
+<span class="k">T0 metrics:</span> drop-off 63, conversion 1.89, …
+<span class="k">work settings:</span> mobile_route,
+  frontline_shift
+<span class="k">sector:</span> freight logistics</pre></div>
+          <div class="col does"><h3>Does</h3><ul>
+            <li>Score = 0.55 root cause + 0.30 T0 numbers + 0.10 work setting + 0.05 sector</li>
+            <li>Rare shared tags count more (IDF-Jaccard)</li>
+            <li>Penalises cases whose actions don't fit this workforce</li>
+            <li>Band: strong ≥ 0.6, moderate ≥ 0.4</li>
+          </ul></div>
+          <div class="col"><h3>Sends · top 3</h3>
+            <div class="tablewrap"><table class="mini">
+              <thead><tr><th>Case</th><th>Score</th><th>Band</th></tr></thead>
+              <tbody>
+                <tr><td>C6 Beta Logistica</td><td class="num">0.607</td><td><span class="chip green">strong</span></td></tr>
+                <tr><td>C16 TransEuropa Supply Chain</td><td class="num">0.509</td><td><span class="chip amber">moderate</span></td></tr>
+                <tr><td>C4 Global Retail Group</td><td class="num">0.436</td><td><span class="chip amber">moderate</span></td></tr>
+                <tr><td style="color:var(--muted)">C10 BellaModa Retail (4th)</td><td class="num" style="color:var(--muted)">0.340</td><td><span class="chip grey">weak</span></td></tr>
+              </tbody>
+            </table></div>
+            <p class="note">C6 ROI added by code: drop-off 58% → 29%, conversion 2.1% → 3.7%, time-to-hire 52 → 36 days.</p></div>
+        </div>
+      </div>
+    </section>
+    <div class="handoff"><span class="arrow">↓</span> passes <b>top 3 cases + ROI text</b></div>
+
+    <!-- 10 -->
+    <section class="stage is-llm" id="s10">
+      <div class="rail"><span class="num">10</span></div>
+      <div class="card">
+        <div class="card-head"><h2>Write the plan</h2><span class="badge llm">LLM</span><span class="file">plan.py</span></div>
+        <p class="summary">The LLM writes the words only: one 25–35 word line per slot, a sentence per diagnosed cause, the reason for each verdict, research citations and open questions. Code adds the standard action name in front.</p>
+        <div class="why"><h3>Why this stage</h3><ul>
+          <li><b>Each part does what it is best at:</b> the LLM writes clear, client-specific text; code has already made the decisions.</li>
+          <li><b>Specific, not templated:</b> it names this client's cohorts and sites (C-CQC drivers, Bologna and Naples).</li>
+          <li><b>Checkable output:</b> the tags on each action let code verify the wording in step 11.</li>
+        </ul></div>
+        <div class="cols">
+          <div class="col"><h3>Receives</h3>
+<pre><span class="k">slot A6</span> mobile_fast_apply · Phase 2
+  why: Application form friction,
+       resequenced request F25
+<span class="k">cause</span> application_friction · diagnosed
+  evidence: F9, F10, S12
+<span class="k">verdict</span> F24 BLOCKED + code reason
+<span class="k">+</span> top 3 cases, research R1–R10,
+  field notes FN1–FN6</pre></div>
+          <div class="col does"><h3>Does</h3><ul>
+            <li>Words each slot for this client's cohorts and sites</li>
+            <li>Tags each action: intervention id, advocacy flag, cohort, work setting</li>
+            <li>Uses only numbers it was given</li>
+            <li>Can't add, remove or move a slot</li>
+          </ul></div>
+          <div class="col"><h3>Sends</h3>
+<pre><span class="k">A6:</span> "Mobile fast-apply pilot: After the
+ portal audit, pilot mobile fast-apply for
+ C-CQC drivers in Bologna and Naples,
+ removing account creation and deferring
+ the CV upload."
+
+<span class="k">root cause:</span> "Application form friction:
+ C-CQC driver and Warehouse Operator
+ applicants face desktop-style account
+ registration and a five-page CV upload on
+ a portal they primarily access by phone."</pre></div>
+        </div>
+      </div>
+    </section>
+    <div class="handoff"><span class="arrow">↓</span> passes <b>draft plan + action tags</b></div>
+
+    <!-- 11 -->
+    <section class="stage" id="s11">
+      <div class="rail"><span class="num">11</span></div>
+      <div class="card">
+        <div class="card-head"><h2>Verify the plan</h2><span class="badge code">Code</span><span class="file">verify.py · tripwire.py</span></div>
+        <p class="summary">26 checks on the draft. Problems go back to the LLM for up to 3 rounds; anything still failing is removed by code and logged.</p>
+        <div class="why"><h3>Why this stage</h3><ul>
+          <li><b>Trust, but check:</b> the LLM is never relied on to follow the rules by itself.</li>
+          <li><b>Readable fixes:</b> feedback rounds let the LLM correct itself in its own words.</li>
+          <li><b>Guaranteed safe output:</b> code enforcement means no rule-breaking action reaches the client.</li>
+          <li><b>No made-up statistics:</b> final audit found 0 ungrounded numbers.</li>
+        </ul></div>
+        <div class="cols">
+          <div class="col"><h3>Receives</h3><p>The draft plan with its tags, plus every code decision: causes, gate, verdicts, skeleton, allowed numbers.</p>
+<pre><span class="c">// CloudNova draft, round 1</span>
+<span class="k">action 3:</span> "Audit Glassdoor and Indeed
+ reviews for Milan and Berlin product
+ squads…"
+<span class="k">evidence_ids:</span> [… F9 …]   <span class="c">F9 = noise row</span></pre></div>
+          <div class="col does"><h3>Does</h3><ul>
+            <li>Fit: workforce and work setting</li>
+            <li>Gate, prerequisites, phase, allowed phases</li>
+            <li>Banned levers and healthy assets</li>
+            <li>Every number must exist in the input, research, cases or code</li>
+            <li>Tripwire: ~10 trap phrases, only a backup</li>
+          </ul></div>
+          <div class="col"><h3>Sends</h3>
+<pre><span class="k">round 1:</span> 1 violation
+  <span class="v">noise_usage</span> · action 3
+  "justified by noise fact(s) ['F9']"
+  → sent back to the LLM
+<span class="k">round 2:</span> 0 violations
+<span class="k">removed by code:</span> none</pre>
+            <p class="note"><b>EuroFreight:</b> 0 violations in round 1, nothing removed.</p></div>
+        </div>
+      </div>
+    </section>
+    <div class="handoff"><span class="arrow">↓</span> passes <b>verified plan</b></div>
+
+    <!-- 12 -->
+    <section class="stage" id="s12">
+      <div class="rail"><span class="num">12</span></div>
+      <div class="card">
+        <div class="card-head"><h2>Output</h2><span class="badge code">Code</span><span class="file">submission.json · trace/*.json, trace/*.html</span></div>
+        <p class="summary">The submission sections for the judges, plus a full trace of every step above for auditing.</p>
+        <div class="why"><h3>Why this stage</h3><ul>
+          <li><b>Valid by design:</b> the submission passes the official validator with 0 errors and 0 warnings.</li>
+          <li><b>Every decision is auditable:</b> the trace links each claim to the quote or number behind it.</li>
+          <li><b>Repeatable demo:</b> the LLM cache makes reruns identical, free and possible offline.</li>
+        </ul></div>
+        <div class="cols">
+          <div class="col"><h3>submission.json sections</h3><ul>
+            <li>diagnosed_root_causes</li>
+            <li>blocked_traps_and_guardrails</li>
+            <li>phase_1 / phase_2 / phase_3_actions</li>
+            <li>matched_case_studies</li>
+            <li>supporting_research_snippets</li>
+            <li>strategic_focus_and_do_not_touch</li>
+            <li>cohort_specific_strategies</li>
+            <li>open_questions_and_hypotheses_for_client</li>
+            <li>action_rationales</li>
+          </ul></div>
+          <div class="col does"><h3>Example entries</h3>
+<pre><span class="k">blocked_traps_and_guardrails:</span>
+"[BLOCKED] Marketing Director request:
+ Launch a B2B technical LinkedIn blog
+ series to attract drivers. - Why: … a
+ poor fit for deskless driver recruitment."
+
+"[RESEQUENCED] Regional Hub Directors
+ request: … (tomorrow morning) - Why: Audit
+ the mobile funnel and calibrate driver and
+ warehouse personas first."</pre></div>
+          <div class="col"><h3>Trace</h3><p>One JSON and one clickable HTML file per client. It holds the facts and votes, double-checks, signals, cause scores, gate, verdicts, skeleton, case scores, verifier rounds and removals.</p>
+            <p class="note">If a judge asks "why?", the trace shows the evidence ids behind each decision.</p></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>Examples are copied from the run traces in <code>trace/</code>. Two examples are marked as not from EuroFreight: the input-repair warnings (made-up messy input) and the double-check, gate contrast and verifier catch (CloudNova).</footer>
+</div>
+
+</body></html>
