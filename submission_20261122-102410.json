@@ -1,0 +1,384 @@
+{
+  "team_name": "Team 10 — Fanatic",
+  "chosen_architecture_paradigm": "Agentic planner-verifier pipeline: deterministic loader + metric-vs-peer signal engine (YAML polarity), LLM fact extraction with verbatim-quote verification, declarative intervention/rule knowledge base (YAML), case-based ranker (sector/workforce/IDF root-cause/T0 similarity), LLM planner with strict JSON schema, and a deterministic verifier that feeds violations back for up to 3 rounds (Python + OpenAI SDK)",
+  "scenarios": [
+    {
+      "scenario_code": "SCENARIO_BLIND_02_MERIDIANA",
+      "diagnosed_root_causes": [
+        "Application form friction: Field technician candidates, including Bologna Depot applicants, must register, re-enter work history and upload certificates before submitting from a phone.",
+        "Generic job ads: Depot technician postings read like municipal notices and omit paid high-voltage certification, the summer schedule and other benefits electricians can use to compare offers.",
+        "Channel mismatch: Depot electricians apply by phone during lunch breaks, but the careers site hands them off to a desktop-style public-tender portal poorly suited to short sessions.",
+        "Uncoached middle management: In HQ Digital/IT, a director repeatedly vetoed an employee’s transfer to AI Grid Forecasting, making access to the team contingent on the sending director.",
+        "Career-path opacity: For mid-tenure HQ Data/Cloud specialists, blocked moves from legacy IT into Smart-Grid AI make resignation a route to advancing a grade."
+      ],
+      "blocked_traps_and_guardrails": [
+        "[NOT SUPPORTED (hypothesis to test)] Chairman request: Enter the national 'Top Employer for Youth' ranking. (this year) - Why: Not supported as a hiring lever: junior recruiting is not the stated problem. Test in Phase 1 whether ranking exposure can be tied to qualified depot or HQ specialist applications.",
+        "[DEFERRED] CHRO request, initiative 1 of 2: External Employee Advocacy / Ambassador Campaign (from: \"Launch a Gen-Z employee ambassador campaign on TikTok and LinkedIn and hire a creative agency to overhaul the corporate EVP from scratch.\") (next month for the campaign; 6 months for the EVP overhaul) - Why: External Employee Advocacy / Ambassador Campaign waits for Phase 3: the advocacy gate is BLOCKED (FN4, R5). Defer advocacy until repeat listening shows the HQ transfer-related management issue is resolved. Do not commission a rebuild: the field offer has verified strengths missing from job ads, and discretionary branding requires hard agency savings.",
+        "[RESCOPED] CHRO request, initiative 2 of 2: Targeted EVP Realignment to Verified Reality (from the same request) - rescoped to a pilot with the employees / sites already ready, then extended - Why: Targeted EVP Realignment to Verified Reality starts as a pilot, not corporate EVP and Gen-Z audience: sites and cohorts differ",
+        "[NOT SUPPORTED (hypothesis to test)] CHRO request: Win an employer branding award for the Board and fill the 55 field technician and 15 digital roles. (12 months) - Why: The award is not supported as a hiring lever. Keep the vacancy goals and test in Phase 1 whether award-related visibility has produced qualified hires or demonstrable agency savings.",
+        "[RESCOPED] CHRO request: Prioritize fast direct applications from regional technical schools and electricians, and internal progression for IT. - rescoped to a pilot with the employees / sites already ready, then extended - Why: Separate the work: pilot direct mobile applications at Bologna Depot after the portal audit, and pilot internal progression from legacy IT into Smart-Grid AI after listening and publication of grade criteria.",
+        "[BLOCKED (noise quarantined)] Quarantined out-of-context rows: \"the 3.34 all-time headline score is pulled down by 36 older reviews from former employees (2.14 stars)\" - Why: Retain them in the all-time public record, but keep older former-employee ratings out of the current-workforce diagnostic baseline.",
+        "[BLOCKED (noise quarantined)] Quarantined out-of-context rows: \"Slow bureaucracy during the 2022–2023 office restructuring, left after my fixed-term contract ended.\" - Why: The comment concerns a resolved office restructuring and a former fixed-term employee, not current depot recruitment or HQ IT transfers.",
+        "[BLOCKED (noise quarantined)] Quarantined out-of-context rows: \"Cafeteria salad bar runs out by 13:15 on Wednesdays.\" - Why: This is a facilities complaint with no verified connection to the hiring, retention or management problems in scope."
+      ],
+      "phase_1_actions": [
+        "360 listening: Run confidential 360 listening with mid-tenure HQ Data/Cloud specialists and their managers to map transfer vetoes and establish the repeat-listening benchmark for management friction.",
+        "Persona calibration: Map how licensed electricians find jobs across the six depots, distinguishing regional technical-school referrals from direct applicants and testing which benefits make a posting worth opening.",
+        "CFO dashboard: Build a CFO dashboard linking depot direct hires to temporary agency invoices and HQ specialist exits to transfer outcomes, with separate measures for each cohort.",
+        "Portal UX audit: Replay a Bologna Depot electrician application on a phone and reconcile careers-site and ATS events to locate losses at redirect, registration, work history and uploads.",
+        "Exit and team-risk analysis: Trace mid-tenure HQ Digital/IT exits against internal transfer decisions to identify where denials, stalled approvals and repeated requests precede departures from legacy IT."
+      ],
+      "phase_2_actions": [
+        "Manager coaching: Coach HQ Digital/IT directors implicated in blocked moves to explain decisions against published criteria, document refusals and send contested cases for review outside the sending team.",
+        "Mobile fast-apply pilot: Pilot a short mobile application at Bologna Depot, collecting contact details and licence status first and moving certificate uploads later only where procurement rules permit.",
+        "Persona-aligned job ads + Realistic job previews: Rewrite depot technician ads for electricians, using a short written preview of maintenance duties, licence requirements, paid certifications and the actual summer schedule.",
+        "Internal Mobility & Reskilling Pathways: Pilot internal moves from legacy IT into Smart-Grid AI for eligible mid-tenure HQ Data/Cloud specialists, with reskilling tied to receiving-team requirements and documented selection decisions.",
+        "Career framework: Publish a grade and skills map for HQ Data/Cloud specialists that shows routes from legacy IT into Smart-Grid AI, with explicit eligibility, assessment and appeal rules."
+      ],
+      "phase_3_actions": [
+        "Ambassador selection: Once repeat 360 listening confirms HQ Digital/IT management friction is resolved against the Phase 1 target, invite existing depot and HQ employee contributors to opt into ambassador roles."
+      ],
+      "matched_case_studies": [
+        "VoltGrid Renewables (European Smart-Grid & CleanTech Engineering Network) (moderate match) - ROI: -24% reduction in early engineering turnover (from 16.9% to 12.8%, saving €390k/year in turnover exposure), career growth rating lifted from 2.88 to 3.79, and Time-to-Hire shortened by 24% (from 45 to 34 days). | 12-month T0->T1: Early first-year attrition 16.9->12.8% (-24%); Applicant conversion 3.18->4.36% (+37%); Application drop-off 33.4->30.8% (-8%); Time-to-hire (days) 45->34 (-24%) | Why it matches: VoltGrid is the closest workforce match: distributed field electrical operations alongside smart-grid engineering, with generic ads and a legacy-to-digital progression problem. Its listening, reskilling and financial reporting sequence fits the split plan.",
+        "KronoCart Tech (European E-Commerce & Cloud Platform) (weak match) - ROI: -31% reduction in first-year software engineering attrition (from 21.4% to 14.8%), public review reply rate lifted to 84%, and overall employer rating increased from 3.31 to 3.89. | 12-month T0->T1: Early first-year attrition 21.4->14.8% (-31%); Applicant conversion 2.94->4.12% (+40%); Application drop-off 36.4->33.9% (-7%); Time-to-hire (days) 47->37 (-21%) | Why it matches: KronoCart links opaque engineering progression with weak review governance and uses listening, visible leveling and manager coaching. Its written role-preview approach also supports clearer ads without requiring an employee campaign.",
+        "Meridian Express Logistics (European Parcel & Interport Courier Network) (weak match) - ROI: -38% reduction in frontline first-year turnover (from 26.8% to 16.6%), overall reputation rating lifted from 3.36 to 4.08 (-56% cross-hub rating std dev, from 0.54 to 0.24), and €640k in annual attrition exposure mitigated. | 12-month T0->T1: Early first-year attrition 26.8->16.6% (-38%); Applicant conversion 3.85->4.12% (+7%); Application drop-off 31.5->30.8% (-2%); Time-to-hire (days) 34->27 (-21%) | Why it matches: Meridian Express shows why coaching should target the teams with documented management friction and why advocacy should wait for trust to stabilize. The transferable lesson is the sequence, not the frontline supervisor or onboarding scope."
+      ],
+      "supporting_research_snippets": [
+        "Snippet 2 (Corporate Career Portal UX & Conversion Study): When an application flow requires account creation and more than 4 form screens on mobile devices, abandonment rates among frontline logistics, retail, and healthcare candidates exceed 58%. Switching to a 60-second mobile fast-apply reduces bounce rates by 30-35%. -> Applied: Supports stepping through the mobile barriers and testing a shorter depot flow; the study results are not a forecast for Bologna.",
+        "Snippet 4 (Workforce Climate & First-Year Attrition Study): Weak middle management and lack of transparent career progression account for over 55% of quantifiable Financial Turnover Risk (EUR) in knowledge-worker and scale-up organizations. Structured 360 feedback combined with manager coaching reduces team-level attrition risk by 18-28%. -> Applied: Supports listening and targeted coaching in HQ Digital/IT alongside transparent progression criteria. (indicative read-across, not a forecast)",
+        "Snippet 5 (Academic & Industry Meta-Analysis on Employee Advocacy Readiness): Asking employees to act as external brand ambassadors during periods of unaddressed workload burnout or cultural distrust produces 'performative backlash'—increasing cynical public reviews and failing to sustain ambassador participation past 60 days. -> Applied: Supports waiting for evidence that the HQ management issue is resolved; it does not diagnose burnout here.",
+        "Snippet 7 (European Frontline Logistics & Retail Talent Acquisition Study): Commercial drivers (C-CQC) and retail store staff prioritize transparent shift predictability, payment punctuality, fleet/store conditions, and rapid mobile application response (<48h) over corporate mission statements. -> Applied: Supports testing which concrete benefits matter to depot electricians rather than assuming a corporate campaign will draw them in.",
+        "Snippet 8 (Executive HR Budget & CFO Governance Survey): 78% of HR budget requests for Employer Branding are rejected or cut because HR presents vanity metrics (likes/reach) instead of Financial Turnover Risk (EUR), Cost-per-Hire savings, and Earned Media Value (EMV). -> Applied: Supports reporting invoice-backed agency savings and staffing outcomes instead of engagement as the CFO business case."
+      ],
+      "strategic_focus_and_do_not_touch": [
+        "Preserve depot technician schedules, certification funding, vans, pay, overtime, welfare and safety equipment. - Over 91% of technicians stay for years once hired; the diagnosed field problems are in attraction and application, not these employment terms.",
+        "Protect HQ Digital/Data work-life balance, sovereign smart-grid work and the junior recruiting pipeline. - The retention issue concerns mid-tenure progression, not junior attraction or the substance and conditions of smart-grid work.",
+        "Exclude Corporate/Finance/Legal/Admin and other unaffected teams from blanket culture or retention remediation. - Corporate/Finance/Legal/Admin current employees rate the employer 4.18 stars, and the transfer problem is specific to HQ Digital/IT.",
+        "Leave organic employee posting and authentic grid and smart-grid LinkedIn content intact. - Real crew and engineering posts already earn 16.8% engagement, and employees share voluntarily. Do not script, quota or replace that voice.",
+        "Preserve careers-site search visibility and existing indexed vacancy URLs. - SEO and reach score 84.5; the weak points are job-ad clarity and application simplicity, not discovery.",
+        "Leave existing content analytics alone; do not buy automation to solve manual tracking. - Reported manual HR tracking time is zero.",
+        "Advocacy gate: BLOCKED - blocked by management friction (diagnosed). Release criteria: management friction: re-run 360 listening shows the management issue resolved in the affected cohorts (target set from the Phase 1 baseline)",
+        "Ruled out: Manual tracking, no EMV - \"manual HR tracking hours per month 0.0; corporate LinkedIn engagement rate 2.94%; quarterly organic impressions 92400\" -> no remediation spend",
+        "Deprioritised to keep phases lean (candidates for later): EVP realignment (Phase 2)"
+      ],
+      "cohort_specific_strategies": [
+        "Field electrical and grid technicians across the six depots: Use Bologna to test a phone-friendly path for licensed electricians; make verified field benefits visible and judge the pilot on qualified direct starts and invoice-backed agency savings.",
+        "Mid-tenure HQ Digital/IT, especially legacy IT Data/Cloud specialists: Start with transfer decisions and director accountability, then publish progression criteria and pilot moves into Smart-Grid AI before widening eligibility."
+      ],
+      "open_questions_and_hypotheses_for_client": [
+        "Secondary cause also stated: Unmanaged local reputation (\"nobody in Comms or HR replies to online reviews\"). Address it after the top root causes, or fold it into an existing fix?",
+        "Can the ATS owner join the careers-site redirect to mobile arrivals, starts and submissions, and which step has the largest verified loss among Bologna candidates?",
+        "Which identity checks and certificates must be collected before formal submission, and which can legally wait until screening?",
+        "Does the reported 48% agency reliance measure shifts, hires or a mixture, and which depot invoices can Finance tie to shifts now covered by direct starts?",
+        "For legacy IT requests into Smart-Grid AI, do HRIS records identify the decision owner and reason, and are voluntary exits more common after denials than after approvals?",
+        "Do ATS source records or referral links connect any past ranking or award exposure to licence-eligible depot applicants or qualified HQ specialist hires?"
+      ],
+      "action_rationales": [
+        {
+          "phase": 1,
+          "action": "360 listening: Run confidential 360 listening with mid-tenure HQ Data/Cloud specialists and their managers to map transfer vetoes and establish the repeat-listening benchmark for management friction.",
+          "slot": "A1",
+          "interventions": [
+            "listening_360"
+          ],
+          "intervention": "listening_360",
+          "how": "HR runs confidential interviews and an anonymous pulse for legacy IT and Smart-Grid AI during Phase 1. Ask whether decisions are explained, whether staff can challenge a refusal and where approvals stall. Record the baseline and agree the resolution target before coaching. Use recent cohort-tagged reviews to inform prompts without folding historical back-office reviews into the baseline.",
+          "conditional": false,
+          "nearest_intervention": "none",
+          "is_advocacy": false,
+          "cohort": "Mid-tenure HQ Data/Cloud specialists and their managers",
+          "work_setting": "office_desk",
+          "why": "The reported vetoes and poor career-growth feedback come from a specific HQ cohort, so a company-wide average would obscure the problem.",
+          "verifies": [],
+          "evidence": [
+            "F42",
+            "F43",
+            "F46",
+            "F52",
+            "R4",
+            "C21",
+            "C12"
+          ]
+        },
+        {
+          "phase": 1,
+          "action": "Persona calibration: Map how licensed electricians find jobs across the six depots, distinguishing regional technical-school referrals from direct applicants and testing which benefits make a posting worth opening.",
+          "slot": "A2",
+          "interventions": [
+            "persona_calibration"
+          ],
+          "intervention": "persona_calibration",
+          "how": "Talent Acquisition compares ATS source, device and licence-screen results with interviews of electricians and regional technical-school contacts in Phase 1. Validate which sources yield licence-eligible applicants and which verified benefits candidates value before briefing the ad rewrite.",
+          "conditional": false,
+          "nearest_intervention": "none",
+          "is_advocacy": false,
+          "cohort": "Field electrical and grid technicians",
+          "work_setting": "frontline_shift",
+          "why": "Depot postings omit practical benefits, while electricians already try to apply in short phone sessions. The plan needs evidence on both what prompts a click and which sources deliver eligible applicants.",
+          "verifies": [],
+          "evidence": [
+            "F1",
+            "F6",
+            "F19",
+            "F20",
+            "F22",
+            "F23",
+            "F32",
+            "F53",
+            "R7",
+            "C21"
+          ]
+        },
+        {
+          "phase": 1,
+          "action": "CFO dashboard: Build a CFO dashboard linking depot direct hires to temporary agency invoices and HQ specialist exits to transfer outcomes, with separate measures for each cohort.",
+          "slot": "A3",
+          "interventions": [
+            "board_dashboard"
+          ],
+          "intervention": "board_dashboard",
+          "how": "Finance and Grid Operations reconcile invoices with covered shifts by depot, while Talent Acquisition links ATS source and time to fill to direct starts and HR adds HQ transfer and exit data. Refresh with each quarterly close. Use €210k per quarter as the grid-maintenance agency baseline; report invoice-backed savings separately from projected avoidance and from job-board costs. In Phase 1, test whether ranking or award sources can be tied to qualified applications or hires for the target roles before considering spend.",
+          "conditional": false,
+          "nearest_intervention": "none",
+          "is_advocacy": false,
+          "cohort": "Field electrical and grid technicians; HQ Digital/IT specialists",
+          "work_setting": "any",
+          "why": "The CFO and Grid Operations Committee require hard agency savings before discretionary branding spend; HQ retention is a separate outcome and should not be counted as depot savings.",
+          "verifies": [],
+          "evidence": [
+            "F1",
+            "F2",
+            "F3",
+            "F5",
+            "F24",
+            "F25",
+            "F26",
+            "F38",
+            "F45",
+            "E1",
+            "R8",
+            "C21",
+            "C17"
+          ]
+        },
+        {
+          "phase": 1,
+          "action": "Portal UX audit: Replay a Bologna Depot electrician application on a phone and reconcile careers-site and ATS events to locate losses at redirect, registration, work history and uploads.",
+          "slot": "A4",
+          "interventions": [
+            "portal_ux_audit"
+          ],
+          "intervention": "portal_ux_audit",
+          "how": "Talent Acquisition and the ATS owner reproduce the Bologna posting journey on a smartphone in Phase 1. Reconcile careers-site outbound clicks with ATS arrivals, starts and submissions, then inspect registration and upload errors. Ask Legal and Procurement to distinguish requirements at formal submission from steps that can move later. Deliver a measured funnel and a list of requirements for the pilot.",
+          "conditional": false,
+          "nearest_intervention": "none",
+          "is_advocacy": false,
+          "cohort": "Bologna Depot field technician applicants",
+          "work_setting": "frontline_shift",
+          "why": "The Bologna complaint identifies specific hurdles, but the legacy redirect makes the headline drop-off metric insufficient to locate them.",
+          "verifies": [],
+          "evidence": [
+            "F28",
+            "F29",
+            "F30",
+            "F31",
+            "F34",
+            "F35",
+            "F54",
+            "F55",
+            "R2"
+          ]
+        },
+        {
+          "phase": 1,
+          "action": "Exit and team-risk analysis: Trace mid-tenure HQ Digital/IT exits against internal transfer decisions to identify where denials, stalled approvals and repeated requests precede departures from legacy IT.",
+          "slot": "A5",
+          "interventions": [
+            "team_risk_diagnostics"
+          ],
+          "intervention": "team_risk_diagnostics",
+          "how": "In Phase 1, People Analytics links restricted HRIS transfer cases and exit records by tenure, originating team, destination and decision owner. Compare voluntary exit rates after denied, delayed and approved requests where sample size permits. Report missing decision reasons and suppress small groups in shared outputs.",
+          "conditional": false,
+          "nearest_intervention": "none",
+          "is_advocacy": false,
+          "cohort": "Mid-tenure HQ Digital/IT specialists",
+          "work_setting": "office_desk",
+          "why": "Higher turnover and poor growth feedback are concentrated among mid-tenure HQ specialists; transfer records can show where to focus the response without assuming every exit has the same cause.",
+          "verifies": [],
+          "evidence": [
+            "F42",
+            "F43",
+            "F44",
+            "F45",
+            "F46",
+            "R4"
+          ]
+        },
+        {
+          "phase": 2,
+          "action": "Manager coaching: Coach HQ Digital/IT directors implicated in blocked moves to explain decisions against published criteria, document refusals and send contested cases for review outside the sending team.",
+          "slot": "A6",
+          "interventions": [
+            "manager_coaching"
+          ],
+          "intervention": "manager_coaching",
+          "how": "After Phase 1 listening and exit analysis, the HR business partner uses anonymized transfer cases in coaching with the affected directors. Require recorded criteria and reasons, with disputed denials reviewed by HR and the receiving team. Track unresolved cases and rerun the same confidential listening questions against the baseline target.",
+          "conditional": false,
+          "nearest_intervention": "none",
+          "is_advocacy": false,
+          "cohort": "HQ Digital/IT directors in affected teams",
+          "work_setting": "office_desk",
+          "why": "A director repeatedly blocked a move to AI Grid Forecasting, and broader reports link director vetoes to lost progression. Training without a change to decision accountability would leave that mechanism intact.",
+          "verifies": [],
+          "evidence": [
+            "F42",
+            "F43",
+            "F44",
+            "R4",
+            "C21",
+            "C12",
+            "C17"
+          ]
+        },
+        {
+          "phase": 2,
+          "action": "Mobile fast-apply pilot: Pilot a short mobile application at Bologna Depot, collecting contact details and licence status first and moving certificate uploads later only where procurement rules permit.",
+          "slot": "A7",
+          "interventions": [
+            "mobile_fast_apply"
+          ],
+          "intervention": "mobile_fast_apply",
+          "how": "After the audit, Talent Acquisition and the ATS owner test a phone flow at Bologna Depot with contact details and a licence declaration. Defer document collection only where Legal and Procurement confirm it is permitted; if early validation is mandatory, retain it in the formal application and make that step mobile-friendly. Compare qualified completions per mobile start with the audited baseline and check recruiter handling time and certificate validation.",
+          "conditional": false,
+          "nearest_intervention": "none",
+          "is_advocacy": false,
+          "cohort": "Bologna Depot field technician applicants",
+          "work_setting": "frontline_shift",
+          "why": "Bologna provides a documented applicant journey to fix and measure. Upfront registration and PDFs are particularly costly for electricians applying in short phone sessions.",
+          "verifies": [],
+          "evidence": [
+            "F26",
+            "F28",
+            "F29",
+            "F30",
+            "F31",
+            "F32",
+            "F34",
+            "F36",
+            "R2",
+            "R7"
+          ]
+        },
+        {
+          "phase": 2,
+          "action": "Persona-aligned job ads + Realistic job previews: Rewrite depot technician ads for electricians, using a short written preview of maintenance duties, licence requirements, paid certifications and the actual summer schedule.",
+          "slot": "A8",
+          "interventions": [
+            "persona_aligned_jds",
+            "realistic_job_previews"
+          ],
+          "intervention": "persona_aligned_jds",
+          "how": "Talent Acquisition drafts the copy from the Phase 1 persona findings; Grid Operations and HR validate the written role preview against actual site duties and the agreement. Update only target vacancy content, keep existing URLs and search metadata, and tag regional school and direct links. Compare licence-eligible application completion and screening-stage withdrawals with the prior postings.",
+          "conditional": false,
+          "nearest_intervention": "realistic_job_previews",
+          "is_advocacy": false,
+          "cohort": "Field electrical and grid technicians",
+          "work_setting": "frontline_shift",
+          "why": "Field ads hide concrete benefits and score poorly on clarity; candidates need to see the real terms and duties without changing the underlying offer.",
+          "verifies": [],
+          "evidence": [
+            "F19",
+            "F20",
+            "F22",
+            "F23",
+            "F32",
+            "F53",
+            "F55",
+            "R7",
+            "C12",
+            "C21"
+          ]
+        },
+        {
+          "phase": 2,
+          "action": "Internal Mobility & Reskilling Pathways: Pilot internal moves from legacy IT into Smart-Grid AI for eligible mid-tenure HQ Data/Cloud specialists, with reskilling tied to receiving-team requirements and documented selection decisions.",
+          "slot": "A9",
+          "interventions": [
+            "internal_mobility"
+          ],
+          "intervention": "internal_mobility",
+          "how": "After the listening readout and publication of the grade framework, HQ HR confirms receiving-team capacity and opens the pilot to eligible mid-tenure legacy IT specialists. Use skills assessments and targeted reskilling for identified gaps. Log decisions, appeals, completed moves and subsequent retention in the HRIS before extending to other teams.",
+          "conditional": false,
+          "nearest_intervention": "none",
+          "is_advocacy": false,
+          "cohort": "Mid-tenure HQ Data/Cloud specialists in legacy IT",
+          "work_setting": "office_desk",
+          "why": "The reported barrier is on a specific HQ transfer route. F6 is better served by testing that route than by combining the mobility rollout with field hiring.",
+          "verifies": [],
+          "evidence": [
+            "F6",
+            "F42",
+            "F43",
+            "F44",
+            "F45",
+            "R4",
+            "C21"
+          ]
+        },
+        {
+          "phase": 2,
+          "action": "Career framework: Publish a grade and skills map for HQ Data/Cloud specialists that shows routes from legacy IT into Smart-Grid AI, with explicit eligibility, assessment and appeal rules.",
+          "slot": "A10",
+          "interventions": [
+            "career_framework"
+          ],
+          "intervention": "career_framework",
+          "how": "After Phase 1 listening, the HQ HR business partner and role leads map current grades, specify skills evidence and publish who reviews applications, how decisions are explained and how to appeal. Before opening the mobility pilot, test whether legacy IT specialists can use the framework to identify an eligible next grade and the evidence they need.",
+          "conditional": false,
+          "nearest_intervention": "none",
+          "is_advocacy": false,
+          "cohort": "HQ Data/Cloud specialists moving between legacy IT and Smart-Grid AI",
+          "work_setting": "office_desk",
+          "why": "When cross-team moves are blocked, employees report having to resign to advance a grade. Visible criteria and review ownership make an internal progression route usable.",
+          "verifies": [],
+          "evidence": [
+            "F42",
+            "F44",
+            "F46",
+            "R4",
+            "C21",
+            "C12"
+          ]
+        },
+        {
+          "phase": 3,
+          "action": "Ambassador selection: Once repeat 360 listening confirms HQ Digital/IT management friction is resolved against the Phase 1 target, invite existing depot and HQ employee contributors to opt into ambassador roles.",
+          "slot": "A11",
+          "interventions": [
+            "ambassador_selection"
+          ],
+          "intervention": "ambassador_selection",
+          "how": "HR and Communications keep selection on hold until repeat listening meets the agreed resolution target and the prerequisite reputation audit is confirmed complete. Then use existing public mentions to identify willing contributors and document consent and role expectations. Success is a roster of volunteers, not a posting quota or a campaign launch; leave spontaneous posting unchanged.",
+          "conditional": true,
+          "nearest_intervention": "none",
+          "is_advocacy": true,
+          "cohort": "Existing voluntary employee contributors at depots and HQ",
+          "work_setting": "any",
+          "why": "Employees already share organically, but asking them to represent the employer before transfer-related management friction is resolved risks undermining that trust.",
+          "verifies": [],
+          "evidence": [
+            "F13",
+            "F15",
+            "F42",
+            "F43",
+            "F49",
+            "F50",
+            "FN4",
+            "R5",
+            "C17"
+          ]
+        }
+      ]
+    }
+  ]
+}
